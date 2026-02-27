@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出走｜陪行卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #f8f4ef 0%, #f5ede3 50%, #f0e6d9 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* 浮動裝飾圓點 */
+        .floating-dots {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .dot {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        
+        .dot:nth-child(1) { width: 20px; height: 20px; background: #d4c4a8; top: 10%; left: 5%; }
+        .dot:nth-child(2) { width: 35px; height: 35px; background: #e8dcc8; top: 20%; right: 10%; }
+        .dot:nth-child(3) { width: 15px; height: 15px; background: #c9b896; top: 40%; left: 8%; }
+        .dot:nth-child(4) { width: 25px; height: 25px; background: #ddd0b8; top: 60%; right: 5%; }
+        .dot:nth-child(5) { width: 30px; height: 30px; background: #e5d8c4; top: 75%; left: 12%; }
+        .dot:nth-child(6) { width: 18px; height: 18px; background: #d0c0a0; top: 85%; right: 15%; }
+        .dot:nth-child(7) { width: 22px; height: 22px; background: #e0d4c0; top: 30%; right: 3%; }
+        .dot:nth-child(8) { width: 28px; height: 28px; background: #d8c8b0; top: 50%; left: 3%; }
+        
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 主卡片容器 */
+        .main-card {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 30px;
+            padding: 35px 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #8b7b6b;
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #b8a890;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+        
+        /* 完整版按鈕 */
+        .full-version-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #c9a868 0%, #b8956a 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin: 0 auto 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .full-version-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(185, 150, 100, 0.3);
+        }
+        
+        .full-version-btn::before {
+            content: "🃏";
+        }
+        
+        /* 抽牌按鈕組 */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .draw-btn {
+            background: linear-gradient(135deg, #b8c8c0 0%, #9db8a8 100%);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+        }
+        
+        .draw-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(157, 184, 168, 0.4);
+        }
+        
+        .draw-btn.three-card {
+            background: linear-gradient(135deg, #c8c0b0 0%, #b8a898 100%);
+        }
+        
+        .draw-btn.three-card:hover {
+            box-shadow: 0 5px 20px rgba(184, 168, 152, 0.4);
+        }
+        
+        /* 牌卡顯示區 */
+        .cards-display {
+            display: none;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .cards-display.show {
+            display: flex;
+        }
+        
+        .card-slot {
+            text-align: center;
+        }
+        
+        .card-label {
+            color: #b8a890;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        
+        .card-wrapper {
+            width: 100px;
+            height: 145px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .card-wrapper.single {
+            width: 150px;
+            height: 218px;
+        }
+        
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+        }
+        
+        .card-wrapper.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-back {
+            background: linear-gradient(145deg, #c9b896, #a89878);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #8b7b5a;
+        }
+        
+        .card-back::before {
+            content: "✦";
+            font-size: 30px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .card-wrapper.single .card-back::before {
+            font-size: 45px;
+        }
+        
+        .card-front {
+            transform: rotateY(180deg);
+            background: white;
+        }
+        
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-number {
+            color: #b8a890;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+        
+        /* 解讀結果區 */
+        .reading-result {
+            display: none;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .reading-result.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .reading-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #e8e0d5;
+        }
+        
+        .reading-item:last-child {
+            border-bottom: none;
+        }
+        
+        .reading-position {
+            color: #c9a868;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+        
+        .reading-name {
+            color: #6b5b4f;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .reading-quote {
+            color: #8b7b6b;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            font-style: italic;
+        }
+        
+        /* 重新抽牌按鈕 */
+        .reset-btn {
+            display: none;
+            background: transparent;
+            color: #8b7b6b;
+            border: 1.5px solid #c9b896;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-btn.show {
+            display: block;
+        }
+        
+        .reset-btn:hover {
+            background: #c9b896;
+            color: white;
+        }
+        
+        /* 小提醒 */
+        .tip-box {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .tip-box::before {
+            content: "💡";
+            font-size: 1.1rem;
+        }
+        
+        .tip-box p {
+            color: #8b7b6b;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        /* 頁尾 */
+        .footer {
+            text-align: center;
+            color: #b8a890;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+        
+        .footer .studio {
+            margin-bottom: 5px;
+        }
+        
+        /* 完整版彈窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #f8f4ef;
+            border-radius: 25px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 25px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            color: #6b5b4f;
+            font-size: 1.3rem;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #8b7b6b;
+            cursor: pointer;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .grid-card {
+            aspect-ratio: 7/12;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .grid-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .grid-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* 單牌詳情彈窗 */
+        .card-detail-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .card-detail-modal.show {
+            display: flex;
+        }
+        
+        .card-detail-content {
+            background: #f8f4ef;
+            border-radius: 25px;
+            width: 100%;
+            max-width: 350px;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .detail-card-img {
+            width: 180px;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .detail-name {
+            color: #6b5b4f;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .detail-quote {
+            color: #8b7b6b;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            font-style: italic;
+        }
+        
+        .detail-close-btn {
+            margin-top: 20px;
+            background: #c9b896;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 浮動裝飾 -->
+    <div class="floating-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+    
+    <div class="container">
+        <div class="main-card">
+            <h1>出走｜陪行卡</h1>
+            <p class="subtitle">44張牌，44種陪伴</p>
+            
+            <button class="full-version-btn" onclick="openFullVersion()">完整版（44張）</button>
+            
+            <div class="btn-group">
+                <button class="draw-btn" onclick="drawSingle()">單抽一張</button>
+                <button class="draw-btn three-card" onclick="drawThree()">三牌陣</button>
+            </div>
+            
+            <!-- 單張牌顯示 -->
+            <div class="cards-display" id="singleDisplay">
+                <div class="card-slot">
+                    <div class="card-wrapper single" id="singleCard">
+                        <div class="card-inner">
+                            <div class="card-face card-back"></div>
+                            <div class="card-face card-front">
+                                <img id="singleImg" src="" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="card-number" id="singleNumber"></p>
+                </div>
+            </div>
+            
+            <!-- 三牌陣顯示 -->
+            <div class="cards-display" id="threeDisplay">
+                <div class="card-slot">
+                    <p class="card-label">問題</p>
+                    <div class="card-wrapper" id="card1">
+                        <div class="card-inner">
+                            <div class="card-face card-back"></div>
+                            <div class="card-face card-front">
+                                <img id="img1" src="" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="card-number" id="num1"></p>
+                </div>
+                <div class="card-slot">
+                    <p class="card-label">建議</p>
+                    <div class="card-wrapper" id="card2">
+                        <div class="card-inner">
+                            <div class="card-face card-back"></div>
+                            <div class="card-face card-front">
+                                <img id="img2" src="" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="card-number" id="num2"></p>
+                </div>
+                <div class="card-slot">
+                    <p class="card-label">行動後走向</p>
+                    <div class="card-wrapper" id="card3">
+                        <div class="card-inner">
+                            <div class="card-face card-back"></div>
+                            <div class="card-face card-front">
+                                <img id="img3" src="" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="card-number" id="num3"></p>
+                </div>
+            </div>
+            
+            <!-- 解讀結果 -->
+            <div class="reading-result" id="readingResult"></div>
+            
+            <!-- 重新抽牌按鈕 -->
+            <button class="reset-btn" id="resetBtn" onclick="resetAll()">重新抽牌</button>
+            
+            <div class="tip-box">
+                <p>小提醒：建議將此頁面加入書籤，方便每日快速開啟抽牌。</p>
+            </div>
+            
+            <div class="footer">
+                <p class="studio">遛狗人工作室 ✦ 作者：玄曉</p>
+                <p>感謝您的購買與支持 ♡</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 完整版彈窗 -->
+    <div class="modal" id="fullModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">完整版（44張）</h2>
+                <button class="close-btn" onclick="closeFullVersion()">✕</button>
+            </div>
+            <div class="cards-grid" id="cardsGrid"></div>
+        </div>
+    </div>
+    
+    <!-- 單牌詳情彈窗 -->
+    <div class="card-detail-modal" id="detailModal">
+        <div class="card-detail-content">
+            <img class="detail-card-img" id="detailImg" src="" alt="">
+            <p class="detail-name" id="detailName"></p>
+            <p class="detail-quote" id="detailQuote"></p>
+            <button class="detail-close-btn" onclick="closeDetail()">關閉</button>
+        </div>
+    </div>
+    
+    <script>
+        const cards = [
+            { num: "01", name: "無聲的餐桌", quote: "離開那些讓你感到孤獨的人群，那不是孤單，是自由。" },
+            { num: "02", name: "塵封的紙箱", quote: "你的夢想沒有過期，它只是在等你不怕髒地把它找出來。" },
+            { num: "03", name: "單程機票", quote: "抵達終點並不難，難的是那踏出的第一步。" },
+            { num: "04", name: "雨中的側臉", quote: "當你不再挑剔自己，才是真正美麗的開始。" },
+            { num: "05", name: "苔清水", quote: "心靜下來，答案就會像煙一樣浮現。" },
+            { num: "06", name: "第一支畫筆", quote: "畫壞了又怎樣？人生這張紙，本來就是拿來塗鴉的。" },
+            { num: "07", name: "河粉與板凳", quote: "生活的滋味不在高處，而在充滿煙火氣的街頭。" },
+            { num: "08", name: "燈籠之河", quote: "隨波逐流不是壞事，有時候水流會帶你去對的地方。" },
+            { num: "09", name: "混亂的摩托", quote: "在混亂中保持自己的節奏，誰也亂不了你。" },
+            { num: "10", name: "手作的春捲", quote: "不怕弄髒雙手，才能創造自己喜歡的東西。" },
+            { num: "11", name: "窗邊的素描", quote: "別只顧著趕路，記得把風景收進心裡。" },
+            { num: "12", name: "冰河的裂縫", quote: "裂縫讓你看見了深處，看見真正的你。" },
+            { num: "13", name: "伸出的手", quote: "有時候，接受幫助比獨自堅強需要更大的勇氣。" },
+            { num: "14", name: "同步呼吸", quote: "最好的伴侶不是拉著你走，而是調整呼吸與你並肩。" },
+            { num: "15", name: "山頂的湖", quote: "像湖水一樣平靜下來，你就能倒映出真實的自己。" },
+            { num: "16", name: "爐火與紅酒", quote: "信任的起點，是願意和一個人靜靜待著。" },
+            { num: "17", name: "南十字星", quote: "迷路的時候，抬頭，星星會告訴你方向。" },
+            { num: "18", name: "公路電影", quote: "重要的不是去哪裡，而是誰坐在你身旁。" },
+            { num: "19", name: "風吹開的畫本", quote: "願意被看見真正的自己，那才是關係的開始。" },
+            { num: "20", name: "紅杉巨人", quote: "在時間面前我們都很渺小，所以別把煩惱看得太大。" },
+            { num: "21", name: "停電的木屋", quote: "黑暗不可怕，它只是在告訴你，你需要一個擁抱。" },
+            { num: "22", name: "擁抱的溫度", quote: "給出一個擁抱，那是最美的禮物。" },
+            { num: "23", name: "未完成的城堡", quote: "夢想不需要完美，殘缺本身也是一種美。" },
+            { num: "24", name: "胡桃鉗娃娃", quote: "和解不一定需要原諒，有時候只需要一個轉身。" },
+            { num: "25", name: "維納斯的凝視", quote: "你不需要成為女神，你只需要成為你自己。" },
+            { num: "26", name: "穹頂之上", quote: "身後是他人眼光的地獄，眼前是自我寬恕的天堂。" },
+            { num: "27", name: "基督山的擁抱", quote: "張開雙臂，你已經準備好擁抱世界了。" },
+            { num: "28", name: "瀑布的尖叫", quote: "想哭就哭，想叫就叫，把情緒沖刷乾淨吧。" },
+            { num: "29", name: "天空之鏡", quote: "你不需要尋找答案了，因為你就是答案本身。" },
+            { num: "30", name: "高原的色彩", quote: "生命本該是五彩斑斕的，別活成黑白的。" },
+            { num: "31", name: "雲端的古城", quote: "走過的路都不會白費，它們是你登頂的基石。" },
+            { num: "32", name: "未完成的巨人", quote: "未完成又怎樣？那代表你還沒有結束。" },
+            { num: "33", name: "藍白之間", quote: "允許自己什麼都不做，那也是一種生活。" },
+            { num: "34", name: "餐巾紙上的貓", quote: "毫不費力的快樂，才是最高級的藝術。" },
+            { num: "35", name: "混亂中的貓", quote: "世界再吵，你也可以像貓一樣優雅地路過。" },
+            { num: "36", name: "熱氣球的晨曦", quote: "換個高度看世界，原本過不去的坎都變成了風景。" },
+            { num: "37", name: "地下城的光", quote: "即使在最深的地底，光也會找到縫隙鑽進來。" },
+            { num: "38", name: "殘缺的圖書館", quote: "時間會帶走多餘的裝飾，留下的才是本質。" },
+            { num: "39", name: "尼羅河的風帆", quote: "生命是循環，今天的日落是為了明天的升起。" },
+            { num: "40", name: "沙漠的星空", quote: "在極致的安靜中，你會聽見內心的聲音。" },
+            { num: "41", name: "巨像的凝視", quote: "存在，本身就是意義。" },
+            { num: "42", name: "極光下的並肩", quote: "真正的愛，是並肩看向同一片風景。" },
+            { num: "43", name: "光與迴聲", quote: "傷痕不是用來遮掩的，是過去的你修補成的榮耀。" },
+            { num: "44", name: "新的空白頁", quote: "結局已經寫好，但新的篇章才正要開始。" }
+        ];
+        
+        let isDrawn = false;
+        
+        function getCardImage(num) {
+            const ext = num === "41" ? "png" : "jpg";
+            return `cards/No.${num}_牌卡.${ext}`;
+        }
+        
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        function drawSingle() {
+            if (isDrawn) return;
+            isDrawn = true;
+            
+            const card = cards[Math.floor(Math.random() * cards.length)];
+            
+            document.getElementById('singleDisplay').classList.add('show');
+            document.getElementById('threeDisplay').classList.remove('show');
+            document.getElementById('singleImg').src = getCardImage(card.num);
+            
+            setTimeout(() => {
+                document.getElementById('singleCard').classList.add('flipped');
+                document.getElementById('singleNumber').textContent = `No.${card.num}`;
+            }, 300);
+            
+            setTimeout(() => {
+                const resultHtml = `
+                    <div class="reading-item">
+                        <p class="reading-name">No.${card.num} ${card.name}</p>
+                        <p class="reading-quote">「${card.quote}」</p>
+                    </div>
+                `;
+                document.getElementById('readingResult').innerHTML = resultHtml;
+                document.getElementById('readingResult').classList.add('show');
+                document.getElementById('resetBtn').classList.add('show');
+            }, 1000);
+        }
+        
+        function drawThree() {
+            if (isDrawn) return;
+            isDrawn = true;
+            
+            const shuffled = shuffleArray(cards);
+            const selected = shuffled.slice(0, 3);
+            const positions = ['問題', '建議', '行動後走向'];
+            
+            document.getElementById('threeDisplay').classList.add('show');
+            document.getElementById('singleDisplay').classList.remove('show');
+            
+            selected.forEach((card, i) => {
+                document.getElementById(`img${i + 1}`).src = getCardImage(card.num);
+                
+                setTimeout(() => {
+                    document.getElementById(`card${i + 1}`).classList.add('flipped');
+                    document.getElementById(`num${i + 1}`).textContent = `No.${card.num}`;
+                }, 300 + (i * 400));
+            });
+            
+            setTimeout(() => {
+                let resultHtml = '';
+                selected.forEach((card, i) => {
+                    resultHtml += `
+                        <div class="reading-item">
+                            <p class="reading-position">${positions[i]}</p>
+                            <p class="reading-name">No.${card.num} ${card.name}</p>
+                            <p class="reading-quote">「${card.quote}」</p>
+                        </div>
+                    `;
+                });
+                document.getElementById('readingResult').innerHTML = resultHtml;
+                document.getElementById('readingResult').classList.add('show');
+                document.getElementById('resetBtn').classList.add('show');
+            }, 2000);
+        }
+        
+        function resetAll() {
+            isDrawn = false;
+            
+            document.getElementById('singleDisplay').classList.remove('show');
+            document.getElementById('threeDisplay').classList.remove('show');
+            document.getElementById('readingResult').classList.remove('show');
+            document.getElementById('resetBtn').classList.remove('show');
+            
+            document.getElementById('singleCard').classList.remove('flipped');
+            document.getElementById('card1').classList.remove('flipped');
+            document.getElementById('card2').classList.remove('flipped');
+            document.getElementById('card3').classList.remove('flipped');
+            
+            document.getElementById('singleNumber').textContent = '';
+            document.getElementById('num1').textContent = '';
+            document.getElementById('num2').textContent = '';
+            document.getElementById('num3').textContent = '';
+        }
+        
+        function openFullVersion() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+            
+            cards.forEach(card => {
+                const div = document.createElement('div');
+                div.className = 'grid-card';
+                div.onclick = () => showCardDetail(card);
+                div.innerHTML = `<img src="${getCardImage(card.num)}" alt="${card.name}">`;
+                grid.appendChild(div);
+            });
+            
+            document.getElementById('fullModal').classList.add('show');
+        }
+        
+        function closeFullVersion() {
+            document.getElementById('fullModal').classList.remove('show');
+        }
+        
+        function showCardDetail(card) {
+            document.getElementById('detailImg').src = getCardImage(card.num);
+            document.getElementById('detailName').textContent = `No.${card.num} ${card.name}`;
+            document.getElementById('detailQuote').textContent = `「${card.quote}」`;
+            document.getElementById('detailModal').classList.add('show');
+        }
+        
+        function closeDetail() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+        
+        // 點擊背景關閉彈窗
+        document.getElementById('fullModal').addEventListener('click', function(e) {
+            if (e.target === this) closeFullVersion();
+        });
+        
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDetail();
+        });
+    </script>
+</body>
+</html>
