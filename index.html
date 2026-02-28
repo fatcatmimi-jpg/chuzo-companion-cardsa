@@ -75,29 +75,21 @@
             margin-bottom: 20px;
         }
         
-        /* 完整版按鈕 */
-        .full-version-btn {
+        /* 完整版標示 */
+        .full-version-label {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             background: linear-gradient(135deg, #c9a868 0%, #b8956a 100%);
             color: white;
-            border: none;
             padding: 12px 28px;
             border-radius: 25px;
             font-size: 0.95rem;
-            cursor: pointer;
             margin: 0 auto 25px;
-            transition: all 0.3s ease;
         }
         
-        .full-version-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(185, 150, 100, 0.3);
-        }
-        
-        .full-version-btn::before {
+        .full-version-label::before {
             content: "🃏";
         }
         
@@ -192,21 +184,16 @@
         }
         
         .card-back {
-            background: linear-gradient(145deg, #c9b896, #a89878);
+            background: #f5f0e8;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #8b7b5a;
         }
         
-        .card-back::before {
-            content: "✦";
-            font-size: 30px;
-            color: rgba(255, 255, 255, 0.4);
-        }
-        
-        .card-wrapper.single .card-back::before {
-            font-size: 45px;
+        .card-back img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .card-front {
@@ -222,8 +209,9 @@
         
         .card-number {
             color: #b8a890;
-            font-size: 0.85rem;
-            margin-top: 8px;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            padding-bottom: 5px;
         }
         
         /* 解讀結果區 */
@@ -331,139 +319,7 @@
             margin-bottom: 5px;
         }
         
-        /* 完整版彈窗 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
         
-        .modal.show {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: #f8f4ef;
-            border-radius: 25px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 25px;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .modal-title {
-            color: #6b5b4f;
-            font-size: 1.3rem;
-        }
-        
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #8b7b6b;
-            cursor: pointer;
-        }
-        
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        
-        .grid-card {
-            aspect-ratio: 7/12;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .grid-card:hover {
-            transform: scale(1.05);
-        }
-        
-        .grid-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        /* 單牌詳情彈窗 */
-        .card-detail-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 200;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .card-detail-modal.show {
-            display: flex;
-        }
-        
-        .card-detail-content {
-            background: #f8f4ef;
-            border-radius: 25px;
-            width: 100%;
-            max-width: 350px;
-            padding: 25px;
-            text-align: center;
-        }
-        
-        .detail-card-img {
-            width: 180px;
-            height: auto;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-        }
-        
-        .detail-name {
-            color: #6b5b4f;
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        
-        .detail-quote {
-            color: #8b7b6b;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            font-style: italic;
-        }
-        
-        .detail-close-btn {
-            margin-top: 20px;
-            background: #c9b896;
-            color: white;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -484,7 +340,7 @@
             <h1>出走｜陪行卡</h1>
             <p class="subtitle">44張牌，44種陪伴</p>
             
-            <button class="full-version-btn" onclick="openFullVersion()">完整版（44張）</button>
+            <div class="full-version-label">完整版（44張）</div>
             
             <div class="btn-group">
                 <button class="draw-btn" onclick="drawSingle()">單抽一張</button>
@@ -496,7 +352,9 @@
                 <div class="card-slot">
                     <div class="card-wrapper single" id="singleCard">
                         <div class="card-inner">
-                            <div class="card-face card-back"></div>
+                            <div class="card-face card-back">
+                                <img src="cards/牌背.png" alt="牌背">
+                            </div>
                             <div class="card-face card-front">
                                 <img id="singleImg" src="" alt="">
                             </div>
@@ -512,7 +370,9 @@
                     <p class="card-label">問題</p>
                     <div class="card-wrapper" id="card1">
                         <div class="card-inner">
-                            <div class="card-face card-back"></div>
+                            <div class="card-face card-back">
+                                <img src="cards/牌背.png" alt="牌背">
+                            </div>
                             <div class="card-face card-front">
                                 <img id="img1" src="" alt="">
                             </div>
@@ -524,7 +384,9 @@
                     <p class="card-label">建議</p>
                     <div class="card-wrapper" id="card2">
                         <div class="card-inner">
-                            <div class="card-face card-back"></div>
+                            <div class="card-face card-back">
+                                <img src="cards/牌背.png" alt="牌背">
+                            </div>
                             <div class="card-face card-front">
                                 <img id="img2" src="" alt="">
                             </div>
@@ -536,7 +398,9 @@
                     <p class="card-label">行動後走向</p>
                     <div class="card-wrapper" id="card3">
                         <div class="card-inner">
-                            <div class="card-face card-back"></div>
+                            <div class="card-face card-back">
+                                <img src="cards/牌背.png" alt="牌背">
+                            </div>
                             <div class="card-face card-front">
                                 <img id="img3" src="" alt="">
                             </div>
@@ -563,26 +427,7 @@
         </div>
     </div>
     
-    <!-- 完整版彈窗 -->
-    <div class="modal" id="fullModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">完整版（44張）</h2>
-                <button class="close-btn" onclick="closeFullVersion()">✕</button>
-            </div>
-            <div class="cards-grid" id="cardsGrid"></div>
-        </div>
-    </div>
     
-    <!-- 單牌詳情彈窗 -->
-    <div class="card-detail-modal" id="detailModal">
-        <div class="card-detail-content">
-            <img class="detail-card-img" id="detailImg" src="" alt="">
-            <p class="detail-name" id="detailName"></p>
-            <p class="detail-quote" id="detailQuote"></p>
-            <button class="detail-close-btn" onclick="closeDetail()">關閉</button>
-        </div>
-    </div>
     
     <script>
         const cards = [
@@ -732,44 +577,7 @@
             document.getElementById('num3').textContent = '';
         }
         
-        function openFullVersion() {
-            const grid = document.getElementById('cardsGrid');
-            grid.innerHTML = '';
-            
-            cards.forEach(card => {
-                const div = document.createElement('div');
-                div.className = 'grid-card';
-                div.onclick = () => showCardDetail(card);
-                div.innerHTML = `<img src="${getCardImage(card.num)}" alt="${card.name}">`;
-                grid.appendChild(div);
-            });
-            
-            document.getElementById('fullModal').classList.add('show');
-        }
         
-        function closeFullVersion() {
-            document.getElementById('fullModal').classList.remove('show');
-        }
-        
-        function showCardDetail(card) {
-            document.getElementById('detailImg').src = getCardImage(card.num);
-            document.getElementById('detailName').textContent = `No.${card.num} ${card.name}`;
-            document.getElementById('detailQuote').textContent = `「${card.quote}」`;
-            document.getElementById('detailModal').classList.add('show');
-        }
-        
-        function closeDetail() {
-            document.getElementById('detailModal').classList.remove('show');
-        }
-        
-        // 點擊背景關閉彈窗
-        document.getElementById('fullModal').addEventListener('click', function(e) {
-            if (e.target === this) closeFullVersion();
-        });
-        
-        document.getElementById('detailModal').addEventListener('click', function(e) {
-            if (e.target === this) closeDetail();
-        });
     </script>
 </body>
 </html>
